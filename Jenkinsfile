@@ -7,8 +7,8 @@ pipeline {
 
     environment {
         // Use Jenkins credentials for AWS authentication
-        AWS_ACCESS_KEY_ID     = credentials('access_key_1')   // replace with your Jenkins credential ID
-        AWS_SECRET_ACCESS_KEY = credentials('secret_key_1')   // replace with your Jenkins credential ID
+        AWS_ACCESS_KEY_ID     = credentials('Access_Key')   // replace with your Jenkins credential ID
+        AWS_SECRET_ACCESS_KEY = credentials('Secret_ID')   // replace with your Jenkins credential ID
     }
 
     stages {
