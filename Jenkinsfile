@@ -6,14 +6,15 @@ pipeline {
     }
 
     environment {
-        AWS_ACCESS_KEY_ID     = credentials('Access_Key')
-        AWS_SECRET_ACCESS_KEY = credentials('Secret_ID')
+        // Use Jenkins credentials for AWS authentication
+        AWS_ACCESS_KEY_ID     = credentials('access_key_1')   // replace with your Jenkins credential ID
+        AWS_SECRET_ACCESS_KEY = credentials('secret_key_1')   // replace with your Jenkins credential ID
     }
 
     stages {
         stage('Cleanup') {
             steps {
-                deleteDir()
+                deleteDir() // clean workspace to avoid old state issues
             }
         }
 
@@ -25,12 +26,13 @@ pipeline {
             }
         }
 
-        stage('Plan') {
+        stage('Terraform Init & Plan') {
             steps {
                 dir('terraform') {
-                    sh 'terraform init'
-                    sh 'terraform plan -out=tfplan'
-                    sh 'terraform show -no-color tfplan > tfplan.txt'
+                    sh 'terraform init -input=false'
+                    sh 'terraform fmt -check'            // format check
+                    sh 'terraform plan -out=tfplan'      // generate plan
+                    sh 'terraform show -no-color tfplan > tfplan.txt' // save plan
                 }
             }
         }
@@ -43,9 +45,11 @@ pipeline {
             }
             steps {
                 script {
-                    def plan = readFile 'terraform/tfplan.txt'
-                    input message: "Do you want to apply the plan?",
-                          parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
+                    echo "Terraform plan preview (first 50 lines):"
+                    sh 'head -n 50 terraform/tfplan.txt' // only show preview to avoid freezing Jenkins
+
+                    // Manual approval
+                    input message: "Do you want to apply the plan?" // simple Yes/No approval
                 }
             }
         }
@@ -56,6 +60,13 @@ pipeline {
                     sh 'terraform apply -input=false tfplan'
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'terraform/tfplan.txt', fingerprint: true
+            echo "Terraform plan archived for review"
         }
     }
 }
