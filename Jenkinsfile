@@ -31,7 +31,7 @@ pipeline {
                 dir('terraform') {
                     sh 'terraform init -input=false'
                     sh 'terraform fmt -check'            // format check
-                    sh 'terraform plan -out=tfplan'      // generate plan
+                    sh 'terraform plan -input=false -out=tfplan'      // generate plan
                     sh 'terraform show -no-color tfplan > tfplan.txt' // save plan
                 }
             }
